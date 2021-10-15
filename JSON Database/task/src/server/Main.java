@@ -7,6 +7,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Main {
+
+    private static final int DATA_BASE_SIZE = 1000;
+    private static final int DATA_BASE_MIN_INDEX = 1;
+    private static final DataBase dataBase = new DataBase(DATA_BASE_SIZE);
+
     private static final String OK = "OK";
     private static final String ERROR = "ERROR";
     private static final String SET = "set";
@@ -23,7 +28,6 @@ public class Main {
         String action;
         int index = 0;
         String data = "";
-        DataBase dataBase = new DataBase();
 
         try (ServerSocket server = new ServerSocket(PORT)) {
             println("Server started!");
@@ -36,41 +40,44 @@ public class Main {
                     String receivedMsg = input.readUTF();
                     inputs = receivedMsg.split("\\s+");
                     action = inputs[0];
-                    if (inputs.length > 1) index = Integer.parseInt(inputs[1]);
+                    if (inputs.length > 1) {
+                        index = Integer.parseInt(inputs[1]);
+                        if (index < DATA_BASE_MIN_INDEX || index > DATA_BASE_SIZE) {
+                            output.writeUTF(ERROR);
+                            continue;
+                        }
+                    }
                     if (inputs.length > 2) {
                         StringBuilder dataBuild = new StringBuilder();
                         for (int i = 2; i < inputs.length; i++) {
-                            dataBuild.append(inputs[i]); dataBuild.append(" ");
+                            dataBuild.append(inputs[i]).append(" ");
                         }
                         data = dataBuild.toString();
                     }
 
-                    Engine engine = new Engine();
-                    dataBase.initTran(index, data);
+                    TransactionBroker transactionBroker = new TransactionBroker();
                     Command command;
-                    String msgOut = ERROR;
+                    dataBase.initTran();
                     switch (action) {
                         case SET: {
-                            command = new Set(dataBase);
+                            command = new Set(dataBase, index, data);
                             break;
                         }
                         case GET: {
-                            command = new Get(dataBase);
+                            command = new Get(dataBase, index);
                             break;
                         }
                         case DELETE: {
-                            command = new Delete(dataBase);
+                            command = new Delete(dataBase, index);
                             break;
                         }
                         default: {
                             command = new Exit(dataBase);
                         }
                     }
-                    engine.setCommand(command);
-                    engine.executeCommand();
-                    if ((dataBase.getResult() == DataBase.OK)) {
-                        msgOut = (action.equals(GET)) ? dataBase.getOut() : OK;
-                    }
+                    transactionBroker.setCommand(command);
+                    transactionBroker.executeCommand();
+                    String msgOut = transactionBroker.getResultCommand();
 
 
                     output.writeUTF(msgOut);

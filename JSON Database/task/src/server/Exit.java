@@ -11,5 +11,10 @@ public class Exit implements Command {
     public void execute() {
         dataBase.exit();
     }
+
+    @Override
+    public String getResult() {
+        return dataBase.getOut();
+    }
 }
 

@@ -131,7 +131,7 @@ Turn off Light</code></pre>
    <li><strong>Networking. </strong>It is possible to send whole command objects across the network to be executed on other machines: for example, player actions in computer games.</li> 
   </ul> 
   <ul> 
-   <li><strong>Transactional behavior. </strong>Similar to <em>undo</em>, a database engine or software installer may keep a list of operations that have been or will be performed. Should one of them fail, all others can be reversed or discarded (this is usually called <strong>rollback</strong>).</li> 
+   <li><strong>Transactional behavior. </strong>Similar to <em>undo</em>, a database transactionBroker or software installer may keep a list of operations that have been or will be performed. Should one of them fail, all others can be reversed or discarded (this is usually called <strong>rollback</strong>).</li>
   </ul> 
   <ul> 
    <li><strong>Asynchronous method invocation. </strong>In multithreading programming, this pattern makes it possible to run commands asynchronously in the background of an application. In this case, the Invoker is running in the main thread and sends the requests to the Receiver which is running in a separate thread. The invoker will keep a queue of commands and send them to the receiver while it finishes running them.</li> 

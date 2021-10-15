@@ -1,72 +1,43 @@
 package server;
 
+import java.util.Arrays;
+
 public class DataBase {
-    public static final int OK = 0;
-    public static final int ERROR = 1;
+    public static final String OK = "OK";
+    public static final String ERROR = "ERROR";
 
-    private static final int DATA_BASE_SIZE = 1001;
-    private final String[] dataBase = new String[DATA_BASE_SIZE];
+    private String[] dataBase;
 
-    private String data;
-    private int index;
-    private int result;
     private String out;
 
-    public int getResult() {
-        return result;
+    public DataBase(int dataBaseSize) {
+        dataBase = new String[dataBaseSize];
+        Arrays.fill(dataBase, "");
     }
 
     public String getOut() {
         return out;
     }
 
-    {
-        for (int i = 0; i < DATA_BASE_SIZE; i++) {
-            dataBase[i] = "";
-        }
+    public void initTran() {
+        out = OK;
     }
 
-    public DataBase() {
+    public void set(int index, String data) {
+        dataBase[index] = data;
     }
 
-    public void initTran(int index, String data) {
-        this.index = index;
-        this.data = data;
+    public void get(int index) {
+        out = dataBase[index];
+        out = (out.equals("")) ? ERROR : out;
     }
 
-    private boolean testInd() {
-        return (index > 0 && index < DATA_BASE_SIZE);
-    }
-
-    public void set() {
-        if (testInd()) {
-            dataBase[index] = data;
-            result = OK;
-        } else {
-            result = ERROR;
-        }
-    }
-
-    public void get() {
-        if (testInd()) {
-            out = dataBase[index];
-            result = (out.equals("")) ? ERROR : OK;
-        } else {
-            result = ERROR;
-        }
-    }
-
-    public void delete() {
-        if (testInd()) {
-            dataBase[index] = "";
-            result = OK;
-        } else {
-            result = ERROR;
-        }
+    public void delete(int index) {
+        dataBase[index] = "";
     }
 
     public void exit() {
-        result = OK;
+        out = OK;
     }
 
 }
