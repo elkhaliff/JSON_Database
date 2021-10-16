@@ -1,7 +1,7 @@
 package server;
 
 public class Exit implements Command {
-    private DataBase dataBase;
+    private final DataBase dataBase;
 
     public Exit(DataBase dataBase) {
         this.dataBase = dataBase;
@@ -13,7 +13,7 @@ public class Exit implements Command {
     }
 
     @Override
-    public String getResult() {
+    public Response getResult() {
         return dataBase.getOut();
     }
 }

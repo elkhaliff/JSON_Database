@@ -1,6 +1,8 @@
 package client;
 
 import com.beust.jcommander.*;
+import com.google.gson.Gson;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -25,14 +27,9 @@ public class Main {
                 DataOutputStream output  = new DataOutputStream(socket.getOutputStream())
         ) {
             println("Client started!");
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(params.getType()); stringBuilder.append(" ");
-            stringBuilder.append(params.getIndex()); stringBuilder.append(" ");
-            if (params.getMessage() != null) {
-                stringBuilder.append(params.getMessage());
-                stringBuilder.append(" ");
-            }
-            String commandLine = stringBuilder.toString().trim();
+
+            Gson gson = new Gson();
+            String commandLine = gson.toJson(params);
 
             output.writeUTF(commandLine);
             System.out.printf("Sent: %s\n", commandLine);

@@ -4,5 +4,5 @@ interface Command {
 
     void execute();
 
-    String getResult();
+    Response getResult();
 }

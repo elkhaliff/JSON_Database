@@ -1,19 +1,19 @@
 package server;
 
 public class Delete implements Command {
-    private DataBase dataBase;
-    private final int index;
+    private final DataBase dataBase;
+    private final String key;
 
-    public Delete(DataBase dataBase, int index) {
+    public Delete(DataBase dataBase, String key) {
         this.dataBase = dataBase;
-        this.index = index;
+        this.key = key;
     }
 
     @Override
-    public void execute() { dataBase.delete(index); }
+    public void execute() { dataBase.delete(key); }
 
     @Override
-    public String getResult() {
+    public Response getResult() {
         return dataBase.getOut();
     }
 }

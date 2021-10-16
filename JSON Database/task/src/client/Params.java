@@ -6,27 +6,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Params {
-    @Parameter
-    private List<String> parameters = new ArrayList<>();
-
     @Parameter(names = { "-t", "-type" }, description = "Type of the request")
     private String type;
 
-    @Parameter(names = {"-i", "-index"}, description = "Index of the cell")
-    private Integer index;
+    @Parameter(names = {"-k", "-key"}, description = "Key of the cell")
+    private String key;
 
-    @Parameter(names = {"-m", "-message"}, description = "Value to save in the database")
-    private String message;
+    @Parameter(names = {"-v", "-value"}, description = "Value to save in the database")
+    private String value;
 
     public String getType() {
         return type;
     }
 
-    public Integer getIndex() {
-        return index;
+    public String getKey() {
+        return key;
     }
 
-    public String getMessage() {
-        return message;
+    public String getValue() {
+        return value;
     }
 }

@@ -11,5 +11,5 @@ public class TransactionBroker {
         command.execute();
     }
 
-    public String getResultCommand() { return command.getResult(); }
+    public Response getResultCommand() { return command.getResult(); }
 }

@@ -1,21 +1,21 @@
 package server;
 
 public class Get implements Command {
-    private DataBase dataBase;
-    private final int index;
+    private final DataBase dataBase;
+    private final String key;
 
-    public Get(DataBase dataBase, int index) {
+    public Get(DataBase dataBase, String key) {
         this.dataBase = dataBase;
-        this.index = index;
+        this.key = key;
     }
 
     @Override
     public void execute() {
-        dataBase.get(index);
+        dataBase.get(key);
     }
 
     @Override
-    public String getResult() {
+    public Response getResult() {
         return dataBase.getOut();
     }
 }

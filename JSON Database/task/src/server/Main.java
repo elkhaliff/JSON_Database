@@ -1,5 +1,7 @@
 package server;
 
+import com.google.gson.Gson;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -8,12 +10,8 @@ import java.net.Socket;
 
 public class Main {
 
-    private static final int DATA_BASE_SIZE = 1000;
-    private static final int DATA_BASE_MIN_INDEX = 1;
-    private static final DataBase dataBase = new DataBase(DATA_BASE_SIZE);
+    private static final DataBase dataBase = new DataBase();
 
-    private static final String OK = "OK";
-    private static final String ERROR = "ERROR";
     private static final String SET = "set";
     private static final String GET = "get";
     private static final String DELETE = "delete";
@@ -24,11 +22,6 @@ public class Main {
     public static void println(String string) { System.out.println(string); }
 
     public static void main(String[] args) {
-        String[] inputs;
-        String action;
-        int index = 0;
-        String data = "";
-
         try (ServerSocket server = new ServerSocket(PORT)) {
             println("Server started!");
             while (true) {
@@ -38,37 +31,24 @@ public class Main {
                         DataOutputStream output = new DataOutputStream(socket.getOutputStream())
                 ) {
                     String receivedMsg = input.readUTF();
-                    inputs = receivedMsg.split("\\s+");
-                    action = inputs[0];
-                    if (inputs.length > 1) {
-                        index = Integer.parseInt(inputs[1]);
-                        if (index < DATA_BASE_MIN_INDEX || index > DATA_BASE_SIZE) {
-                            output.writeUTF(ERROR);
-                            continue;
-                        }
-                    }
-                    if (inputs.length > 2) {
-                        StringBuilder dataBuild = new StringBuilder();
-                        for (int i = 2; i < inputs.length; i++) {
-                            dataBuild.append(inputs[i]).append(" ");
-                        }
-                        data = dataBuild.toString();
-                    }
+
+                    Gson gson = new Gson();
+                    Request request = gson.fromJson(receivedMsg, Request.class);
 
                     TransactionBroker transactionBroker = new TransactionBroker();
                     Command command;
                     dataBase.initTran();
-                    switch (action) {
+                    switch (request.getType()) {
                         case SET: {
-                            command = new Set(dataBase, index, data);
+                            command = new Set(dataBase, request.getKey(), request.getValue());
                             break;
                         }
                         case GET: {
-                            command = new Get(dataBase, index);
+                            command = new Get(dataBase, request.getKey());
                             break;
                         }
                         case DELETE: {
-                            command = new Delete(dataBase, index);
+                            command = new Delete(dataBase, request.getKey());
                             break;
                         }
                         default: {
@@ -77,13 +57,12 @@ public class Main {
                     }
                     transactionBroker.setCommand(command);
                     transactionBroker.executeCommand();
-                    String msgOut = transactionBroker.getResultCommand();
 
+                    String msgOut = gson.toJson(transactionBroker.getResultCommand());
 
                     output.writeUTF(msgOut);
-//                    System.out.printf("Sent: A record # %s was sent!\n", msgOut);
 
-                    if (action.equals(EXIT)) return;
+                    if (request.getType().equals(EXIT)) return;
                 }
             }
         } catch (IOException e) {

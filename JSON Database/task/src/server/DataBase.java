@@ -1,43 +1,54 @@
 package server;
 
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DataBase {
     public static final String OK = "OK";
     public static final String ERROR = "ERROR";
+    private static final String NO_SUCH_KEY = "No such key";
 
-    private String[] dataBase;
+    private final Map<String, String> dataBase;
 
-    private String out;
 
-    public DataBase(int dataBaseSize) {
-        dataBase = new String[dataBaseSize];
-        Arrays.fill(dataBase, "");
-    }
+    private Response out;
 
-    public String getOut() {
-        return out;
+    public DataBase() {
+        dataBase = new HashMap<>();
     }
 
     public void initTran() {
-        out = OK;
+        out = new Response();
+        out.setResponse(OK);
     }
 
-    public void set(int index, String data) {
-        dataBase[index] = data;
+    public Response getOut() {
+        return out;
     }
 
-    public void get(int index) {
-        out = dataBase[index];
-        out = (out.equals("")) ? ERROR : out;
+    public void set(String key, String value) {
+        dataBase.put(key, value);
     }
 
-    public void delete(int index) {
-        dataBase[index] = "";
+    public void get(String key) {
+        if (dataBase.containsKey(key))
+            out.setValue(dataBase.get(key));
+        else {
+            out.setResponse(ERROR);
+            out.setReason(NO_SUCH_KEY);
+        }
+    }
+
+    public void delete(String key) {
+        if (dataBase.containsKey(key))
+            dataBase.remove(key);
+        else {
+            out.setResponse(ERROR);
+            out.setReason(NO_SUCH_KEY);
+        }
     }
 
     public void exit() {
-        out = OK;
     }
 
 }
