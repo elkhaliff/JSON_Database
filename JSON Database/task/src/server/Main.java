@@ -3,18 +3,15 @@ package server;
 import com.google.gson.Gson;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Main {
-
-    private static final DataBase dataBase = new DataBase();
-
-    private static final String SET = "set";
-    private static final String GET = "get";
-    private static final String DELETE = "delete";
     private static final String EXIT = "exit";
 
     private static final int PORT = 34512;
@@ -22,51 +19,32 @@ public class Main {
     public static void println(String string) { System.out.println(string); }
 
     public static void main(String[] args) {
+        int poolSize = Runtime.getRuntime().availableProcessors();
+        ExecutorService executor = Executors.newFixedThreadPool(poolSize);
+
         try (ServerSocket server = new ServerSocket(PORT)) {
             println("Server started!");
-            while (true) {
+            while (!server.isClosed()) {
                 try (
                         Socket socket = server.accept();
-                        DataInputStream input = new DataInputStream(socket.getInputStream());
-                        DataOutputStream output = new DataOutputStream(socket.getOutputStream())
+                        DataInputStream input = new DataInputStream(socket.getInputStream())
                 ) {
                     String receivedMsg = input.readUTF();
-
                     Gson gson = new Gson();
                     Request request = gson.fromJson(receivedMsg, Request.class);
 
-                    TransactionBroker transactionBroker = new TransactionBroker();
-                    Command command;
-                    dataBase.initTran();
-                    switch (request.getType()) {
-                        case SET: {
-                            command = new Set(dataBase, request.getKey(), request.getValue());
-                            break;
-                        }
-                        case GET: {
-                            command = new Get(dataBase, request.getKey());
-                            break;
-                        }
-                        case DELETE: {
-                            command = new Delete(dataBase, request.getKey());
-                            break;
-                        }
-                        default: {
-                            command = new Exit(dataBase);
-                        }
-                    }
-                    transactionBroker.setCommand(command);
-                    transactionBroker.executeCommand();
+                    ReadWriteLock lock = new ReentrantReadWriteLock();
 
-                    String msgOut = gson.toJson(transactionBroker.getResultCommand());
+                    executor.submit(new Session(request, socket, lock));
 
-                    output.writeUTF(msgOut);
+                    Thread.sleep(50);
 
-                    if (request.getType().equals(EXIT)) return;
+                    if (EXIT.equals(request.getType())) break;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+        executor.shutdown();
     }
 }

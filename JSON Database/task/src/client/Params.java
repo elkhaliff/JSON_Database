@@ -2,9 +2,6 @@ package client;
 
 import com.beust.jcommander.Parameter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Params {
     @Parameter(names = { "-t", "-type" }, description = "Type of the request")
     private String type;
@@ -14,6 +11,9 @@ public class Params {
 
     @Parameter(names = {"-v", "-value"}, description = "Value to save in the database")
     private String value;
+
+    @Parameter(names = {"-in", "-input"}, description = "Params file name")
+    private String input;
 
     public String getType() {
         return type;
@@ -26,4 +26,6 @@ public class Params {
     public String getValue() {
         return value;
     }
+
+    public String getInput() { return input; }
 }
