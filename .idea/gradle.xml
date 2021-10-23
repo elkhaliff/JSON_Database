@@ -30,6 +30,9 @@
             <option value="$PROJECT_DIR$/Topics/Default methods/Implement a default method" />
             <option value="$PROJECT_DIR$/Topics/Default methods/Resolve a diamond problem" />
             <option value="$PROJECT_DIR$/Topics/Default methods/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Encapsulating object creation/Clock factory" />
+            <option value="$PROJECT_DIR$/Topics/Encapsulating object creation/Motor static factory" />
+            <option value="$PROJECT_DIR$/Topics/Encapsulating object creation/Theory" />
             <option value="$PROJECT_DIR$/Topics/Executors/Asynchronous email sending" />
             <option value="$PROJECT_DIR$/Topics/Executors/Messaging" />
             <option value="$PROJECT_DIR$/Topics/Executors/Theory" />
@@ -42,6 +45,8 @@
             <option value="$PROJECT_DIR$/Topics/Lambda expressions/Theory" />
             <option value="$PROJECT_DIR$/Topics/Method references/Ascending and descending sorting" />
             <option value="$PROJECT_DIR$/Topics/Method references/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Queue and Stack/Theory" />
+            <option value="$PROJECT_DIR$/Topics/Queue and Stack/Working with queue" />
             <option value="$PROJECT_DIR$/Topics/The List interface/Count the value occurrences" />
             <option value="$PROJECT_DIR$/Topics/The List interface/Filtering the list" />
             <option value="$PROJECT_DIR$/Topics/The List interface/Greek letters" />
