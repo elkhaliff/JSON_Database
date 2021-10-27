@@ -1,11 +1,13 @@
 package server;
 
+import com.google.gson.JsonElement;
+
 public class Request {
     private final String type;
-    private final String key;
-    private final String value;
+    private final JsonElement key;
+    private final JsonElement value;
 
-    public Request(String type, String key, String value) {
+    public Request(String type, JsonElement key, JsonElement value) {
         this.type = type;
         this.key = key;
         this.value = value;
@@ -15,11 +17,11 @@ public class Request {
         return type;
     }
 
-    public String getKey() {
+    public JsonElement getKey() {
         return key;
     }
 
-    public String getValue() {
+    public JsonElement getValue() {
         return value;
     }
 }

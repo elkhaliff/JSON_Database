@@ -1,58 +1,72 @@
 package server;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DataBase {
     public static final String OK = "OK";
     public static final String ERROR = "ERROR";
     private static final String NO_SUCH_KEY = "No such key";
 
+    private static final String RESP_FLD_RESPONSE = "response";
+    private static final String RESP_FLD_REASON = "reason";
+    private static final String RESP_FLD_VALUE = "value";
+
     private static final String fileName = "db.json";
     private static final String dbFilePath = System.getProperty("user.dir") + File.separator +
-//            "JSON Database" + File.separator + "task" + File.separator +
+            "JSON Database" + File.separator + "task" + File.separator +
             "src" + File.separator + "server" + File.separator + "data" + File.separator + fileName;
 
-    private Map<String, String> db;
+    // private Map<String, JsonElement> db;
+    // private Response out;
+    private JsonObject db;
+    private JsonObject out;
+
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock writeLock = readWriteLock.writeLock();
+    private final Lock readLock = readWriteLock.readLock();
 
 
-    private Response out;
 
     public DataBase() {
-        db = new HashMap<>();
+        db = new JsonObject();
         loadFile();
     }
 
-    private void initTran(ReadWriteLock lock) {
-        out = new Response();
-        out.setResponse(OK);
-        Lock readLock = lock.readLock();
-        readLock.lock();
-        loadFile();
-        readLock.unlock();
+    private void initTran(boolean withFIle) {
+        out = new JsonObject();
+        out.addProperty(RESP_FLD_RESPONSE, OK);
+        if (withFIle) {
+            readLock.lock();
+            loadFile();
+            readLock.unlock();
+        }
     }
 
-    public Response getOut() {
+    public JsonElement getOut() {
         return out;
     }
 
-    private void saveFile() throws IOException {
+    private void saveFile() {
         try (FileOutputStream fos = new FileOutputStream(dbFilePath);
              OutputStreamWriter isr = new OutputStreamWriter(fos,
                      StandardCharsets.UTF_8)) {
             Gson gson = new Gson();
+            writeLock.lock();
             gson.toJson(db, isr);
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            writeLock.unlock();
         }
     }
 
@@ -60,58 +74,55 @@ public class DataBase {
         File file = new File(dbFilePath);
         Gson gson = new GsonBuilder().create();
         Path path = file.toPath();
-        try (Reader reader = Files.newBufferedReader(path,
-                StandardCharsets.UTF_8)) {
-            db = (Map<String, String>) gson.fromJson(reader, Map.class);
+        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+            db = gson.fromJson(reader, JsonObject.class);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void set(String key, String value, ReadWriteLock lock) {
-        initTran(lock);
-        Lock writeLock = lock.writeLock();
-        writeLock.lock();
-        db.put(key, value);
-        try {
-            saveFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        writeLock.unlock();
-    }
-
-    public void get(String key, ReadWriteLock lock) {
-        initTran(lock);
-        if (db.containsKey(key)) {
-            out.setValue(db.get(key));
+    public void set(JsonElement keys, JsonElement value) {
+        initTran(true);
+        if (keys.isJsonPrimitive()) {
+            db.add(keys.getAsString(), value);
         } else {
-            out.setResponse(ERROR);
-            out.setReason(NO_SUCH_KEY);
-        }
-    }
+            JsonArray keysArray = keys.getAsJsonArray();
+            JsonArray valueArray = value.getAsJsonArray();
+            for (JsonElement key : keysArray) {
 
-    public void delete(String key, ReadWriteLock lock) {
-        initTran(lock);
-        if (db.containsKey(key)) {
-            Lock writeLock = lock.writeLock();
-            writeLock.lock();
-            db.remove(key);
-            try {
-                saveFile();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-            writeLock.unlock();
-        } else {
-            out.setResponse(ERROR);
-            out.setReason(NO_SUCH_KEY);
+        }
+        saveFile();
+    }
+
+    public void get(JsonElement key) {
+        initTran(true);
+        if (key.isJsonPrimitive()) {
+            JsonElement value = db.get(key.getAsString());
+            if (value != null) {
+                out.add(RESP_FLD_VALUE, value);
+            } else {
+                out.addProperty(RESP_FLD_RESPONSE, ERROR);
+                out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
+            }
+        }
+    }
+
+    public void delete(JsonElement key) {
+        initTran(true);
+        if (key.isJsonPrimitive()) {
+            JsonElement value = db.get(key.getAsString());
+            if (value != null) {
+                db.remove(key.getAsString());
+                saveFile();
+            } else {
+                out.addProperty(RESP_FLD_RESPONSE, ERROR);
+                out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
+            }
         }
     }
 
     public void exit() {
-        out = new Response();
-        out.setResponse(OK);
+        initTran(false);
     }
-
 }

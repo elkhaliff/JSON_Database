@@ -1,27 +1,25 @@
 package server;
 
-import java.util.concurrent.locks.ReadWriteLock;
+import com.google.gson.JsonElement;
 
 public class Set implements Command {
     private final DataBase dataBase;
-    private final String key;
-    private final String value;
-    private final ReadWriteLock lock;
+    private final JsonElement key;
+    private final JsonElement value;
 
-    public Set(DataBase dataBase, String key, String value, ReadWriteLock lock) {
+    public Set(DataBase dataBase, JsonElement key, JsonElement value) {
         this.dataBase = dataBase;
         this.key = key;
         this.value = value;
-        this.lock = lock;
     }
 
     @Override
     public void execute() {
-        dataBase.set(key, value, lock);
+        dataBase.set(key, value);
     }
 
     @Override
-    public Response getResult() {
+    public JsonElement getResult() {
         return dataBase.getOut();
     }
 }

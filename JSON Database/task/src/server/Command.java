@@ -1,8 +1,10 @@
 package server;
 
+import com.google.gson.JsonElement;
+
 interface Command {
 
     void execute();
 
-    Response getResult();
+    JsonElement getResult();
 }

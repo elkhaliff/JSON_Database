@@ -1,23 +1,21 @@
 package server;
 
-import java.util.concurrent.locks.ReadWriteLock;
+import com.google.gson.JsonElement;
 
 public class Delete implements Command {
     private final DataBase dataBase;
-    private final String key;
-    private final ReadWriteLock lock;
+    private final JsonElement key;
 
-    public Delete(DataBase dataBase, String key, ReadWriteLock lock) {
+    public Delete(DataBase dataBase, JsonElement key) {
         this.dataBase = dataBase;
         this.key = key;
-        this.lock = lock;
     }
 
     @Override
-    public void execute() { dataBase.delete(key, lock); }
+    public void execute() { dataBase.delete(key); }
 
     @Override
-    public Response getResult() {
+    public JsonElement getResult() {
         return dataBase.getOut();
     }
 }

@@ -1,25 +1,23 @@
 package server;
 
-import java.util.concurrent.locks.ReadWriteLock;
+import com.google.gson.JsonElement;
 
 public class Get implements Command {
     private final DataBase dataBase;
-    private final String key;
-    private final ReadWriteLock lock;
+    private final JsonElement key;
 
-    public Get(DataBase dataBase, String key, ReadWriteLock lock) {
+    public Get(DataBase dataBase, JsonElement key) {
         this.dataBase = dataBase;
         this.key = key;
-        this.lock = lock;
     }
 
     @Override
     public void execute() {
-        dataBase.get(key, lock);
+        dataBase.get(key);
     }
 
     @Override
-    public Response getResult() {
+    public JsonElement getResult() {
         return dataBase.getOut();
     }
 }

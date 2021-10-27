@@ -1,5 +1,7 @@
 package server;
 
+import com.google.gson.JsonElement;
+
 public class TransactionBroker {
     private Command command;
 
@@ -11,5 +13,5 @@ public class TransactionBroker {
         command.execute();
     }
 
-    public Response getResultCommand() { return command.getResult(); }
+    public JsonElement getResultCommand() { return command.getResult(); }
 }

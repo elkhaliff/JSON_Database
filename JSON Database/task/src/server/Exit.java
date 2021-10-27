@@ -1,5 +1,7 @@
 package server;
 
+import com.google.gson.JsonElement;
+
 public class Exit implements Command {
     private final DataBase dataBase;
 
@@ -13,7 +15,7 @@ public class Exit implements Command {
     }
 
     @Override
-    public Response getResult() {
+    public JsonElement getResult() {
         return dataBase.getOut();
     }
 }
