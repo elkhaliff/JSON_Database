@@ -23,19 +23,15 @@ public class DataBase {
 
     private static final String fileName = "db.json";
     private static final String dbFilePath = System.getProperty("user.dir") + File.separator +
-            "JSON Database" + File.separator + "task" + File.separator +
+//            "JSON Database" + File.separator + "task" + File.separator +
             "src" + File.separator + "server" + File.separator + "data" + File.separator + fileName;
 
-    // private Map<String, JsonElement> db;
-    // private Response out;
     private JsonObject db;
     private JsonObject out;
 
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private final Lock writeLock = readWriteLock.writeLock();
     private final Lock readLock = readWriteLock.readLock();
-
-
 
     public DataBase() {
         db = new JsonObject();
@@ -57,9 +53,10 @@ public class DataBase {
     }
 
     private void saveFile() {
-        try (FileOutputStream fos = new FileOutputStream(dbFilePath);
-             OutputStreamWriter isr = new OutputStreamWriter(fos,
-                     StandardCharsets.UTF_8)) {
+        try (
+                FileOutputStream fos = new FileOutputStream(dbFilePath);
+                OutputStreamWriter isr = new OutputStreamWriter(fos, StandardCharsets.UTF_8)
+            ) {
             Gson gson = new Gson();
             writeLock.lock();
             gson.toJson(db, isr);
@@ -72,13 +69,31 @@ public class DataBase {
 
     private void loadFile() {
         File file = new File(dbFilePath);
-        Gson gson = new GsonBuilder().create();
-        Path path = file.toPath();
-        try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            db = gson.fromJson(reader, JsonObject.class);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (file.length() > 0) {
+            Gson gson = new GsonBuilder().create();
+            Path path = file.toPath();
+            try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
+                db = gson.fromJson(reader, JsonObject.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+    }
+    private JsonElement getElement(JsonArray keysArray) {
+        JsonObject own = db;
+        JsonElement curr = own.get(keysArray.get(0).getAsString());
+        for (int i = 1; i < keysArray.size()-1; i++) {
+            JsonElement key = keysArray.get(i);
+            if (own != null)
+                curr = own.get(key.getAsString());
+            else
+                break;
+            if (curr != null && curr.isJsonObject()) {
+                own = (JsonObject) curr;
+            } else
+                own = null;
+        }
+        return curr;
     }
 
     public void set(JsonElement keys, JsonElement value) {
@@ -87,38 +102,54 @@ public class DataBase {
             db.add(keys.getAsString(), value);
         } else {
             JsonArray keysArray = keys.getAsJsonArray();
-            JsonArray valueArray = value.getAsJsonArray();
-            for (JsonElement key : keysArray) {
-
-            }
+            JsonObject elmByKey = (JsonObject)getElement(keysArray);
+            if (elmByKey!=null)
+                elmByKey.add(keysArray.get(keysArray.size()-1).getAsString(), value);
         }
         saveFile();
     }
-
-    public void get(JsonElement key) {
-        initTran(true);
-        if (key.isJsonPrimitive()) {
-            JsonElement value = db.get(key.getAsString());
-            if (value != null) {
-                out.add(RESP_FLD_VALUE, value);
-            } else {
-                out.addProperty(RESP_FLD_RESPONSE, ERROR);
-                out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
+    private JsonElement getValue(JsonElement keys) {
+        JsonElement value = null;
+        if (keys.isJsonPrimitive()) {
+            value = db.get(keys.getAsString());
+        } else {
+            JsonArray keysArray = keys.getAsJsonArray();
+            JsonObject elmByKey = (JsonObject)getElement(keysArray);
+            if (elmByKey!=null) {
+                value = elmByKey.get(keysArray.get(keysArray.size() - 1).getAsString());
             }
+        }
+        return value;
+    }
+
+    public void get(JsonElement keys) {
+        initTran(true);
+        JsonElement value = getValue(keys);
+        if (value != null) {
+            out.add(RESP_FLD_VALUE, value);
+        } else {
+            out.addProperty(RESP_FLD_RESPONSE, ERROR);
+            out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
         }
     }
 
-    public void delete(JsonElement key) {
+    public void delete(JsonElement keys) {
         initTran(true);
-        if (key.isJsonPrimitive()) {
-            JsonElement value = db.get(key.getAsString());
-            if (value != null) {
-                db.remove(key.getAsString());
-                saveFile();
+        JsonElement value = getValue(keys);
+        if (value != null) {
+            if (keys.isJsonPrimitive()) {
+                db.remove(keys.getAsString());
             } else {
-                out.addProperty(RESP_FLD_RESPONSE, ERROR);
-                out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
+                JsonArray keysArray = keys.getAsJsonArray();
+                JsonObject elmByKey = (JsonObject)getElement(keysArray);
+                if (elmByKey!=null) {
+                    elmByKey.remove(keysArray.get(keysArray.size() - 1).getAsString());
+                }
             }
+            saveFile();
+        } else {
+            out.addProperty(RESP_FLD_RESPONSE, ERROR);
+            out.addProperty(RESP_FLD_REASON, NO_SUCH_KEY);
         }
     }
 

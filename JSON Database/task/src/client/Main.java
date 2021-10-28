@@ -17,7 +17,7 @@ public class Main {
     private static final int SERVER_PORT = 34512;
 
     private static final String clientDataPath = System.getProperty("user.dir") + File.separator +
-            "JSON Database" + File.separator + "task" + File.separator +
+//            "JSON Database" + File.separator + "task" + File.separator +
             "src" + File.separator + "client" + File.separator + "data";
 
     public static void println(String string) { System.out.println(string); }

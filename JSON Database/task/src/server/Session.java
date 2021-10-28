@@ -65,6 +65,8 @@ public class Session  extends Thread { // implements Runnable {
             transactionBroker.executeCommand();
             String msgOut = gson.toJson(transactionBroker.getResultCommand());
             output.writeUTF(msgOut);
+            if (stopServer.get())
+                System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();
         }
