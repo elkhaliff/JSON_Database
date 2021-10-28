@@ -17,11 +17,12 @@ public class Main {
         ExecutorService executor = Executors.newFixedThreadPool(poolSize);
         AtomicBoolean stopServer = new AtomicBoolean(false);
 
-        try (ServerSocket server = new ServerSocket(PORT)) {
+        try {
+            ServerSocket server = new ServerSocket(PORT);
             println("Server started!");
             while (!stopServer.get()) {
                 Socket socket = server.accept();
-                executor.submit(new Session(socket, stopServer));
+                executor.submit(new Session(server, socket, stopServer));
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -81,8 +81,8 @@ public class DataBase {
     }
     private JsonElement getElement(JsonArray keysArray) {
         JsonObject own = db;
-        JsonElement curr = own.get(keysArray.get(0).getAsString());
-        for (int i = 1; i < keysArray.size()-1; i++) {
+        JsonElement curr = null;
+        for (int i = 0; i < keysArray.size()-1; i++) {
             JsonElement key = keysArray.get(i);
             if (own != null)
                 curr = own.get(key.getAsString());
@@ -114,9 +114,13 @@ public class DataBase {
             value = db.get(keys.getAsString());
         } else {
             JsonArray keysArray = keys.getAsJsonArray();
-            JsonObject elmByKey = (JsonObject)getElement(keysArray);
-            if (elmByKey!=null) {
-                value = elmByKey.get(keysArray.get(keysArray.size() - 1).getAsString());
+            if (keysArray.size() == 1) {
+                value = db.get(keysArray.get(0).getAsString());
+            } else {
+                JsonObject elmByKey = (JsonObject) getElement(keysArray);
+                if (elmByKey != null) {
+                    value = elmByKey.get(keysArray.get(keysArray.size() - 1).getAsString());
+                }
             }
         }
         return value;

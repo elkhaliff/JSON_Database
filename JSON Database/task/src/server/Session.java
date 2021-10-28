@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -17,9 +18,11 @@ public class Session  extends Thread { // implements Runnable {
     private static final String EXIT = "exit";
 
     private final Socket socket;
+    private final ServerSocket server;
     private AtomicBoolean stopServer;
 
-    public Session(Socket socket, AtomicBoolean stopServer) {
+    public Session(ServerSocket server, Socket socket, AtomicBoolean stopServer) {
+        this.server = server;
         this.socket = socket;
         this.stopServer = stopServer;
     }
@@ -65,10 +68,17 @@ public class Session  extends Thread { // implements Runnable {
             transactionBroker.executeCommand();
             String msgOut = gson.toJson(transactionBroker.getResultCommand());
             output.writeUTF(msgOut);
-            if (stopServer.get())
-                System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (stopServer.get()) {
+                try {
+                    server.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.exit(0);
+            }
         }
     }
 }
